@@ -717,24 +717,21 @@ export default function VictorMoralesApp() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 pb-24">
-      <header className="bg-stone-900 text-white border-b border-stone-800 px-4 py-3 sticky top-0 z-10 flex justify-between items-center shadow-sm">
+      <header className="bg-stone-900 text-white border-b border-stone-800 px-6 py-4 sticky top-0 z-10 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
           <img 
             src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
             alt="Cerámica Víctor Morales" 
-            className="h-8 object-contain"
+            className="h-9 sm:h-10 object-contain"
           />
-          <span className="text-xs text-stone-400 border-l border-stone-700 pl-3 hidden sm:inline">
-            Control de Turnos
-          </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-stone-300 flex items-center gap-1 font-medium bg-stone-800 px-3 py-1 rounded-full">
+          <span className="text-xs text-stone-300 flex items-center gap-1 font-medium bg-stone-800 px-3 py-1.5 rounded-full border border-stone-700">
             <UserCheck className="w-3.5 h-3.5 text-amber-400" /> {usuarioActual.nombre}
           </span>
           <button
             onClick={cerrarSesion}
-            className="text-xs px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition"
+            className="text-xs px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition border border-stone-700 font-medium"
           >
             Salir
           </button>
@@ -744,165 +741,138 @@ export default function VictorMoralesApp() {
       <main className="max-w-3xl mx-auto p-4 space-y-6">
         {tabActiva === "fichar" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                <img 
-                  src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                  alt="Cerámica Víctor Morales" 
-                  className="w-full max-w-[220px] h-auto object-contain"
-                />
-              </div>
-              <div className="p-4 space-y-2">
-                <p className="text-xs uppercase font-semibold text-stone-400">
-                  Tu cuadrante para hoy ({hoyCliente})
+            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-2">
+              <p className="text-xs uppercase font-semibold text-stone-400">
+                Tu cuadrante para hoy ({hoyCliente})
+              </p>
+              {misTurnosHoy.length === 0 ? (
+                <p className="text-sm text-stone-500">
+                  No tienes turnos asignados hoy en el cuadrante.
                 </p>
-                {misTurnosHoy.length === 0 ? (
-                  <p className="text-sm text-stone-500">
-                    No tienes turnos asignados hoy en el cuadrante.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {misTurnosHoy.map((t) => (
-                      <div
-                        key={t.id}
-                        className={`flex justify-between items-center p-2.5 rounded-xl border text-sm font-medium ${
-                          COLORES_SEDE[t.ubicacion]
+              ) : (
+                <div className="space-y-2">
+                  {misTurnosHoy.map((t) => (
+                    <div
+                      key={t.id}
+                      className={`flex justify-between items-center p-3 rounded-xl border text-sm font-medium ${
+                        COLORES_SEDE[t.ubicacion]
+                      }`}
+                    >
+                      <span>{NOMBRES_SEDE[t.ubicacion]}</span>
+                      <span>
+                        {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)} ({t.horas_totales}h)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm text-center space-y-4">
+              {!fichajeAbierto ? (
+                <>
+                  <label className="block text-sm font-medium text-stone-600">
+                    ¿En qué centro vas a entrar ahora?
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["taller", "nijar", "san_jose"] as Ubicacion[]).map((sede) => (
+                      <button
+                        key={sede}
+                        type="button"
+                        onClick={() => setSedeFichaje(sede)}
+                        className={`py-2.5 px-2 rounded-xl text-xs font-semibold border transition ${
+                          sedeFichaje === sede
+                            ? "bg-stone-900 text-white border-stone-900"
+                            : "bg-stone-50 text-stone-600 border-stone-200"
                         }`}
                       >
-                        <span>{NOMBRES_SEDE[t.ubicacion]}</span>
-                        <span>
-                          {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)} ({t.horas_totales}h)
-                        </span>
-                      </div>
+                        {NOMBRES_SEDE[sede]}
+                      </button>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
 
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden text-center">
-              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                <img 
-                  src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                  alt="Cerámica Víctor Morales" 
-                  className="w-full max-w-[220px] h-auto object-contain"
-                />
-              </div>
-              <div className="p-6 space-y-4">
-                {!fichajeAbierto ? (
-                  <>
-                    <label className="block text-sm font-medium text-stone-600">
-                      ¿En qué centro vas a entrar ahora?
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["taller", "nijar", "san_jose"] as Ubicacion[]).map((sede) => (
-                        <button
-                          key={sede}
-                          type="button"
-                          onClick={() => setSedeFichaje(sede)}
-                          className={`py-2.5 px-2 rounded-xl text-xs font-semibold border transition ${
-                            sedeFichaje === sede
-                              ? "bg-stone-900 text-white border-stone-900"
-                              : "bg-stone-50 text-stone-600 border-stone-200"
-                          }`}
-                        >
-                          {NOMBRES_SEDE[sede]}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={ficharEntrada}
-                      disabled={procesando}
-                      className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-2xl font-bold text-lg shadow-sm flex items-center justify-center gap-2 transition"
-                    >
-                      <LogIn className="w-6 h-6" />{" "}
-                      {procesando ? "REGISTRANDO..." : "FICHAR ENTRADA"}
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                      Trabajando en {NOMBRES_SEDE[fichajeAbierto.ubicacion]} desde las{" "}
-                      {new Date(fichajeAbierto.entrada).toLocaleTimeString("es-ES", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
-
-                    <button
-                      onClick={ficharSalida}
-                      disabled={procesando}
-                      className="w-full py-6 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-2xl font-bold text-lg shadow-sm flex items-center justify-center gap-2 transition"
-                    >
-                      <LogOut className="w-6 h-6" />{" "}
-                      {procesando ? "CERRANDO TURNO..." : "FINALIZAR JORNADA"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                <img 
-                  src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                  alt="Cerámica Víctor Morales" 
-                  className="w-full max-w-[220px] h-auto object-contain"
-                />
-              </div>
-              <div className="p-4 space-y-3">
-                <h2 className="font-semibold text-sm text-stone-900">
-                  Tus últimos registros (Pulsa el lápiz si olvidaste fichar)
-                </h2>
-                <div className="divide-y divide-stone-100">
-                  {misFichajes.slice(0, 10).map((f) => {
-                    const ent = new Date(f.entrada).toLocaleTimeString("es-ES", {
+                  <button
+                    onClick={ficharEntrada}
+                    disabled={procesando}
+                    className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-2xl font-bold text-lg shadow-sm flex items-center justify-center gap-2 transition"
+                  >
+                    <LogIn className="w-6 h-6" />{" "}
+                    {procesando ? "REGISTRANDO..." : "FICHAR ENTRADA"}
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                    Trabajando en {NOMBRES_SEDE[fichajeAbierto.ubicacion]} desde las{" "}
+                    {new Date(fichajeAbierto.entrada).toLocaleTimeString("es-ES", {
                       hour: "2-digit",
                       minute: "2-digit",
-                    });
-                    const sal = f.salida
-                      ? new Date(f.salida).toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "Abierto";
+                    })}
+                  </div>
 
-                    return (
-                      <div key={f.id} className="py-3 flex justify-between items-center text-sm">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-stone-900">{f.fecha}</span>
-                            <span
-                              className={`text-[11px] px-2 py-0.5 rounded-full border ${
-                                COLORES_SEDE[f.ubicacion]
-                              }`}
-                            >
-                              {NOMBRES_SEDE[f.ubicacion]}
-                            </span>
-                            {f.editado_manualmente && (
-                              <span className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                                *Editado
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-stone-500 mt-0.5">
-                            {ent} → {sal}
-                            {f.nota_edicion && ` · (${f.nota_edicion})`}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => abrirModalEdicion(f)}
-                          className="p-2 text-stone-400 hover:text-stone-900 rounded-lg hover:bg-stone-100"
-                          title="Corregir hora manualmente"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    );
-                  })}
+                  <button
+                    onClick={ficharSalida}
+                    disabled={procesando}
+                    className="w-full py-6 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-2xl font-bold text-lg shadow-sm flex items-center justify-center gap-2 transition"
+                  >
+                    <LogOut className="w-6 h-6" />{" "}
+                    {procesando ? "CERRANDO TURNO..." : "FINALIZAR JORNADA"}
+                  </button>
                 </div>
+              )}
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-3">
+              <h2 className="font-semibold text-sm text-stone-900">
+                Tus últimos registros (Pulsa el lápiz si olvidaste fichar)
+              </h2>
+              <div className="divide-y divide-stone-100">
+                {misFichajes.slice(0, 10).map((f) => {
+                  const ent = new Date(f.entrada).toLocaleTimeString("es-ES", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  const sal = f.salida
+                    ? new Date(f.salida).toLocaleTimeString("es-ES", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Abierto";
+
+                  return (
+                    <div key={f.id} className="py-3 flex justify-between items-center text-sm">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-stone-900">{f.fecha}</span>
+                          <span
+                            className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                              COLORES_SEDE[f.ubicacion]
+                            }`}
+                          >
+                            {NOMBRES_SEDE[f.ubicacion]}
+                          </span>
+                          {f.editado_manualmente && (
+                            <span className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                              *Editado
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-stone-500 mt-0.5">
+                          {ent} → {sal}
+                          {f.nota_edicion && ` · (${f.nota_edicion})`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => abrirModalEdicion(f)}
+                        className="p-2 text-stone-400 hover:text-stone-900 rounded-lg hover:bg-stone-100"
+                        title="Corregir hora manualmente"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -959,74 +929,65 @@ export default function VictorMoralesApp() {
                   </button>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                  <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                    <img 
-                      src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                      alt="Cerámica Víctor Morales" 
-                      className="w-full max-w-[220px] h-auto object-contain"
-                    />
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <h2 className="text-sm font-bold text-stone-900">
-                      Equilibrio de Horas Semanal (Meta: 40h)
-                    </h2>
+                <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-3">
+                  <h2 className="text-sm font-bold text-stone-900">
+                    Equilibrio de Horas Semanal (Meta: 40h)
+                  </h2>
 
-                    <div className="space-y-3">
-                      {resumenCompensacionSemanal.map((item) => (
-                        <div
-                          key={item.empleado.id}
-                          className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-xs space-y-1.5"
-                        >
-                          <div className="flex justify-between font-semibold text-stone-900">
-                            <span>{item.empleado.nombre}</span>
-                            <span>
-                              {item.totalPlanificado}h / {item.empleado.horas_contrato_semanal}h
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-stone-600">
-                            <span>
-                              Tienda: <strong>{item.horasTienda}h</strong> · Taller:{" "}
-                              <strong>{item.horasTaller}h</strong>
-                            </span>
-                            {item.faltanParaTaller > 0 ? (
-                              <span className="text-amber-700 font-semibold flex items-center gap-1">
-                                <AlertTriangle className="w-3.5 h-3.5" /> Faltan {item.faltanParaTaller}h
-                              </span>
-                            ) : (
-                              <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Completado
-                              </span>
-                            )}
-                          </div>
+                  <div className="space-y-3">
+                    {resumenCompensacionSemanal.map((item) => (
+                      <div
+                        key={item.empleado.id}
+                        className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-xs space-y-1.5"
+                      >
+                        <div className="flex justify-between font-semibold text-stone-900">
+                          <span>{item.empleado.nombre}</span>
+                          <span>
+                            {item.totalPlanificado}h / {item.empleado.horas_contrato_semanal}h
+                          </span>
                         </div>
-                      ))}
-                    </div>
-
-                    {usuarioActual.tipo === "admin" && (
-                      <div className="space-y-2 pt-1">
-                        <button
-                          onClick={generarTurnosFijosTallerSemana}
-                          disabled={procesando}
-                          className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition shadow-sm"
-                        >
-                          <Zap className="w-4 h-4 text-amber-300" />
-                          {procesando ? "Generando..." : "Rellenar Fijos de Taller (L-V, 07:00-15:00)"}
-                        </button>
-
-                        <button
-                          onClick={autocompletarSemanaTaller}
-                          disabled={procesando}
-                          className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition"
-                        >
-                          <Sparkles className="w-4 h-4 text-amber-300" />
-                          {procesando
-                            ? "Calculando huecos..."
-                            : "Autocompletar déficit en Taller para rotativos"}
-                        </button>
+                        <div className="flex justify-between text-stone-600">
+                          <span>
+                            Tienda: <strong>{item.horasTienda}h</strong> · Taller:{" "}
+                            <strong>{item.horasTaller}h</strong>
+                          </span>
+                          {item.faltanParaTaller > 0 ? (
+                            <span className="text-amber-700 font-semibold flex items-center gap-1">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Faltan {item.faltanParaTaller}h
+                            </span>
+                          ) : (
+                            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Completado
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
+
+                  {usuarioActual.tipo === "admin" && (
+                    <div className="space-y-2 pt-1">
+                      <button
+                        onClick={generarTurnosFijosTallerSemana}
+                        disabled={procesando}
+                        className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition shadow-sm"
+                      >
+                        <Zap className="w-4 h-4 text-amber-300" />
+                        {procesando ? "Generando..." : "Rellenar Fijos de Taller (L-V, 07:00-15:00)"}
+                      </button>
+
+                      <button
+                        onClick={autocompletarSemanaTaller}
+                        disabled={procesando}
+                        className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-300" />
+                        {procesando
+                          ? "Calculando huecos..."
+                          : "Autocompletar déficit en Taller para rotativos"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -1110,67 +1071,58 @@ export default function VictorMoralesApp() {
                 </div>
               </>
             ) : (
-              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                  <img 
-                    src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                    alt="Cerámica Víctor Morales" 
-                    className="w-full max-w-[220px] h-auto object-contain"
+              <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="font-bold text-sm text-stone-900">
+                    Acumulado Mensual de Turnos Planificados
+                  </h2>
+                  <input
+                    type="month"
+                    value={mesExportar}
+                    onChange={(e) => setMesExportar(e.target.value)}
+                    className="text-xs border border-stone-300 rounded-lg p-1.5"
                   />
                 </div>
-                <div className="p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h2 className="font-bold text-sm text-stone-900">
-                      Acumulado Mensual de Turnos Planificados
-                    </h2>
-                    <input
-                      type="month"
-                      value={mesExportar}
-                      onChange={(e) => setMesExportar(e.target.value)}
-                      className="text-xs border border-stone-300 rounded-lg p-1.5"
-                    />
-                  </div>
 
-                  <div className="divide-y divide-stone-100">
-                    {empleados
-                      .filter((e) => e.tipo !== "admin")
-                      .map((emp) => {
-                        const turnosMes = turnos.filter(
-                          (t) => t.empleado_id === emp.id && t.fecha.startsWith(mesExportar)
-                        );
-                        const hNijar = turnosMes
-                          .filter((t) => t.ubicacion === "nijar")
-                          .reduce((a, b) => a + Number(b.horas_totales), 0);
-                        const hSanJose = turnosMes
-                          .filter((t) => t.ubicacion === "san_jose")
-                          .reduce((a, b) => a + Number(b.horas_totales), 0);
-                        const hTaller = turnosMes
-                          .filter((t) => t.ubicacion === "taller")
-                          .reduce((a, b) => a + Number(b.horas_totales), 0);
+                <div className="divide-y divide-stone-100">
+                  {empleados
+                    .filter((e) => e.tipo !== "admin")
+                    .map((emp) => {
+                      const turnosMes = turnos.filter(
+                        (t) => t.empleado_id === emp.id && t.fecha.startsWith(mesExportar)
+                      );
+                      const hNijar = turnosMes
+                        .filter((t) => t.ubicacion === "nijar")
+                        .reduce((a, b) => a + Number(b.horas_totales), 0);
+                      const hSanJose = turnosMes
+                        .filter((t) => t.ubicacion === "san_jose")
+                        .reduce((a, b) => a + Number(b.horas_totales), 0);
+                      const hTaller = turnosMes
+                        .filter((t) => t.ubicacion === "taller")
+                        .reduce((a, b) => a + Number(b.horas_totales), 0);
 
-                        return (
-                          <div key={emp.id} className="py-3 space-y-1">
-                            <div className="flex justify-between text-sm font-semibold">
-                              <span>{emp.nombre}</span>
-                              <span>
-                                Total mes: {Number((hNijar + hSanJose + hTaller).toFixed(2))}h
-                              </span>
-                            </div>
-                            <div className="flex gap-2 text-xs">
-                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900">
-                                Níjar: {Number(hNijar.toFixed(2))}h
-                              </span>
-                              <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-900">
-                                San José: {Number(hSanJose.toFixed(2))}h
-                              </span>
-                              <span className="px-2 py-0.5 rounded bg-stone-200 text-stone-800">
-                                Taller: {Number(hTaller.toFixed(2))}h
-                              </span>
-                            </div>
+                      return (
+                        <div key={emp.id} className="py-3 space-y-1">
+                          <div className="flex justify-between text-sm font-semibold">
+                            <span>{emp.nombre}</span>
+                            <span>
+                              Total mes: {Number((hNijar + hSanJose + hTaller).toFixed(2))}h
+                            </span>
                           </div>
-                        );
-                      })}
-                  </div>
+                          <div className="flex gap-2 text-xs">
+                            <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900">
+                              Níjar: {Number(hNijar.toFixed(2))}h
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-900">
+                              San José: {Number(hSanJose.toFixed(2))}h
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-stone-200 text-stone-800">
+                              Taller: {Number(hTaller.toFixed(2))}h
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -1181,222 +1133,204 @@ export default function VictorMoralesApp() {
           <div className="space-y-6">
             <form
               onSubmit={crearTurnoPlanificado}
-              className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden"
+              className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4"
             >
-              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                <img 
-                  src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                  alt="Cerámica Víctor Morales" 
-                  className="w-full max-w-[220px] h-auto object-contain"
-                />
-              </div>
-              <div className="p-5 space-y-4">
-                <h2 className="font-bold text-sm text-stone-900 flex items-center gap-2">
-                  <Plus className="w-4 h-4" /> Añadir Turno al Cuadrante
-                </h2>
+              <h2 className="font-bold text-sm text-stone-900 flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Añadir Turno al Cuadrante
+              </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Trabajador</label>
-                    <select
-                      value={adminEmpleadoId}
-                      onChange={(e) => setAdminEmpleadoId(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
-                    >
-                      {empleados
-                        .filter((e) => e.tipo !== "admin")
-                        .map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.nombre}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Centro asignado</label>
-                    <select
-                      value={adminSede}
-                      onChange={(e) => setAdminSede(e.target.value as Ubicacion)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
-                    >
-                      <option value="nijar">Tienda Níjar</option>
-                      <option value="san_jose">Tienda San José</option>
-                      <option value="taller">Taller Central</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Fecha de referencia</label>
-                    <input
-                      type="date"
-                      value={adminFecha}
-                      onChange={(e) => setAdminFecha(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Aplicar a:</label>
-                    <select
-                      value={modoCreacionTurno}
-                      onChange={(e) => setModoCreacionTurno(e.target.value as any)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium"
-                    >
-                      <option value="dia">Solo este día exacto</option>
-                      <option value="laborables">Toda la semana (Lunes a Viernes)</option>
-                      <option value="toda_semana">Toda la semana (Lunes a Domingo)</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 sm:col-span-2">
-                    <div>
-                      <label className="block text-xs text-stone-500 mb-1">Entrada</label>
-                      <input
-                        type="time"
-                        value={adminInicio}
-                        onChange={(e) => setAdminInicio(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-stone-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-stone-500 mb-1">Salida</label>
-                      <input
-                        type="time"
-                        value={adminFin}
-                        onChange={(e) => setAdminFin(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-stone-300"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={procesando}
-                  className="w-full py-3 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-800 disabled:opacity-50 transition"
-                >
-                  {procesando ? "Guardando..." : "Guardar Turno(s) en Cuadrante"}
-                </button>
-              </div>
-            </form>
-
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
-                <img 
-                  src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
-                  alt="Cerámica Víctor Morales" 
-                  className="w-full max-w-[220px] h-auto object-contain"
-                />
-              </div>
-              <div className="p-5 space-y-4">
-                <h2 className="font-bold text-sm text-stone-900 flex items-center gap-2">
-                  <Download className="w-4 h-4" /> Histórico de Fichajes y Descarga Excel
-                </h2>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Mes</label>
-                    <input
-                      type="month"
-                      value={mesExportar}
-                      onChange={(e) => setMesExportar(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-stone-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1">Filtrar Empleado</label>
-                    <select
-                      value={empleadoExportar}
-                      onChange={(e) => setEmpleadoExportar(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
-                    >
-                      <option value="todos">Todos los trabajadores</option>
-                      {empleados.map((emp) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Trabajador</label>
+                  <select
+                    value={adminEmpleadoId}
+                    onChange={(e) => setAdminEmpleadoId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                  >
+                    {empleados
+                      .filter((e) => e.tipo !== "admin")
+                      .map((emp) => (
                         <option key={emp.id} value={emp.id}>
                           {emp.nombre}
                         </option>
                       ))}
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={descargarExcelCSV}
-                      className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition"
-                    >
-                      <Download className="w-4 h-4" /> Descargar Excel (.CSV)
-                    </button>
-                  </div>
+                  </select>
                 </div>
 
-                <div className="overflow-x-auto border-t border-stone-100 pt-3">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="text-stone-400 border-b border-stone-100">
-                        <th className="pb-2">Empleado</th>
-                        <th className="pb-2">Fecha / Sede</th>
-                        <th className="pb-2">Horario</th>
-                        <th className="pb-2">Estado</th>
-                        <th className="pb-2 text-right">Editar</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {fichajes
-                        .filter(
-                          (f) =>
-                            f.fecha.startsWith(mesExportar) &&
-                            (empleadoExportar === "todos" || f.empleado_id === empleadoExportar)
-                        )
-                        .map((f) => {
-                          const emp = empleados.find((e) => e.id === f.empleado_id);
-                          return (
-                            <tr key={f.id}>
-                              <td className="py-2.5 font-medium">{emp?.nombre}</td>
-                              <td className="py-2.5">
-                                {f.fecha} · {NOMBRES_SEDE[f.ubicacion]}
-                              </td>
-                              <td className="py-2.5">
-                                {new Date(f.entrada).toLocaleTimeString("es-ES", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
-                                -{" "}
-                                {f.salida
-                                  ? new Date(f.salida).toLocaleTimeString("es-ES", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
-                                  : "Activo"}
-                              </td>
-                              <td className="py-2.5">
-                                {f.editado_manualmente ? (
-                                  <span
-                                    className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium"
-                                    title={f.nota_edicion || ""}
-                                  >
-                                    Manual: {f.nota_edicion}
-                                  </span>
-                                ) : (
-                                  <span className="text-stone-400">Original</span>
-                                )}
-                              </td>
-                              <td className="py-2.5 text-right">
-                                <button
-                                  onClick={() => abrirModalEdicion(f)}
-                                  className="p-1.5 hover:bg-stone-100 rounded text-stone-600"
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Centro asignado</label>
+                  <select
+                    value={adminSede}
+                    onChange={(e) => setAdminSede(e.target.value as Ubicacion)}
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                  >
+                    <option value="nijar">Tienda Níjar</option>
+                    <option value="san_jose">Tienda San José</option>
+                    <option value="taller">Taller Central</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Fecha de referencia</label>
+                  <input
+                    type="date"
+                    value={adminFecha}
+                    onChange={(e) => setAdminFecha(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-stone-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Aplicar a:</label>
+                  <select
+                    value={modoCreacionTurno}
+                    onChange={(e) => setModoCreacionTurno(e.target.value as any)}
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium"
+                  >
+                    <option value="dia">Solo este día exacto</option>
+                    <option value="laborables">Toda la semana (Lunes a Viernes)</option>
+                    <option value="toda_semana">Toda la semana (Lunes a Domingo)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+                  <div>
+                    <label className="block text-xs text-stone-500 mb-1">Entrada</label>
+                    <input
+                      type="time"
+                      value={adminInicio}
+                      onChange={(e) => setAdminInicio(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-stone-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-stone-500 mb-1">Salida</label>
+                    <input
+                      type="time"
+                      value={adminFin}
+                      onChange={(e) => setAdminFin(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-stone-300"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={procesando}
+                className="w-full py-3 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-800 disabled:opacity-50 transition"
+              >
+                {procesando ? "Guardando..." : "Guardar Turno(s) en Cuadrante"}
+              </button>
+            </form>
+
+            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              <h2 className="font-bold text-sm text-stone-900 flex items-center gap-2">
+                <Download className="w-4 h-4" /> Histórico de Fichajes y Descarga Excel
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Mes</label>
+                  <input
+                    type="month"
+                    value={mesExportar}
+                    onChange={(e) => setMesExportar(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-stone-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Filtrar Empleado</label>
+                  <select
+                    value={empleadoExportar}
+                    onChange={(e) => setEmpleadoExportar(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                  >
+                    <option value="todos">Todos los trabajadores</option>
+                    {empleados.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={descargarExcelCSV}
+                    className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <Download className="w-4 h-4" /> Descargar Excel (.CSV)
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto border-t border-stone-100 pt-3">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="text-stone-400 border-b border-stone-100">
+                      <th className="pb-2">Empleado</th>
+                      <th className="pb-2">Fecha / Sede</th>
+                      <th className="pb-2">Horario</th>
+                      <th className="pb-2">Estado</th>
+                      <th className="pb-2 text-right">Editar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {fichajes
+                      .filter(
+                        (f) =>
+                          f.fecha.startsWith(mesExportar) &&
+                          (empleadoExportar === "todos" || f.empleado_id === empleadoExportar)
+                      )
+                      .map((f) => {
+                        const emp = empleados.find((e) => e.id === f.empleado_id);
+                        return (
+                          <tr key={f.id}>
+                            <td className="py-2.5 font-medium">{emp?.nombre}</td>
+                            <td className="py-2.5">
+                              {f.fecha} · {NOMBRES_SEDE[f.ubicacion]}
+                            </td>
+                            <td className="py-2.5">
+                              {new Date(f.entrada).toLocaleTimeString("es-ES", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              -{" "}
+                              {f.salida
+                                ? new Date(f.salida).toLocaleTimeString("es-ES", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "Activo"}
+                            </td>
+                            <td className="py-2.5">
+                              {f.editado_manualmente ? (
+                                <span
+                                  className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium"
+                                  title={f.nota_edicion || ""}
                                 >
-                                  <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
+                                  Manual: {f.nota_edicion}
+                                </span>
+                              ) : (
+                                <span className="text-stone-400">Original</span>
+                              )}
+                            </td>
+                            <td className="py-2.5 text-right">
+                              <button
+                                onClick={() => abrirModalEdicion(f)}
+                                className="p-1.5 hover:bg-stone-100 rounded text-stone-600"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

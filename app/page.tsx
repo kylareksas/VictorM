@@ -717,16 +717,17 @@ export default function VictorMoralesApp() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 pb-24">
-      <header className="bg-stone-900 text-white border-b border-stone-800 px-6 py-4 sticky top-0 z-10 flex justify-between items-center shadow-sm">
-        <div className="flex items-center gap-3">
+      <header className="bg-stone-900 text-white border-b border-stone-800 px-6 py-4 sticky top-0 z-10 grid grid-cols-3 items-center shadow-sm">
+        <div />
+        <div className="flex justify-center">
           <img 
             src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
             alt="Cerámica Víctor Morales" 
-            className="h-9 sm:h-10 object-contain"
+            className="h-10 sm:h-12 w-auto object-contain"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-stone-300 flex items-center gap-1 font-medium bg-stone-800 px-3 py-1.5 rounded-full border border-stone-700">
+        <div className="flex items-center justify-end gap-3">
+          <span className="text-xs text-stone-300 flex items-center gap-1 font-medium bg-stone-800 px-3.5 py-1.5 rounded-full border border-stone-700">
             <UserCheck className="w-3.5 h-3.5 text-amber-400" /> {usuarioActual.nombre}
           </span>
           <button

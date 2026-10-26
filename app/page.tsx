@@ -20,6 +20,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Zap,
 } from "lucide-react";
 
 const supabaseUrl =
@@ -117,10 +118,13 @@ export default function VictorMoralesApp() {
   const [adminSede, setAdminSede] = useState<Ubicacion>("nijar");
   const [adminInicio, setAdminInicio] = useState("10:00");
   const [adminFin, setAdminFin] = useState("14:00");
+  
+  // Nuevo estado para selección múltiple de días (ej: individual o días de la semana)
+  const [modoCreacionTurno, setModoCreacionTurno] = useState<"dia" | "laborables" | "toda_semana">("dia");
+
   const [mesExportar, setMesExportar] = useState("");
   const [empleadoExportar, setEmpleadoExportar] = useState("todos");
 
-  // Estado seguro para evitar new Date() en el prerender estático de Next.js
   const [hoyCliente, setHoyCliente] = useState<string>("");
 
   useEffect(() => {
@@ -338,6 +342,7 @@ export default function VictorMoralesApp() {
       });
   }, [empleados, turnos, diasSemanaSeleccionada]);
 
+  // --- CREAR TURNO (CON SOPORTE PARA MÚLTIPLES DÍAS) ---
   async function crearTurnoPlanificado(e: React.FormEvent) {
     e.preventDefault();
     if (procesando) return;
@@ -351,36 +356,70 @@ export default function VictorMoralesApp() {
       return;
     }
 
-    const turnosMismoDia = turnos.filter(
-      (t) => t.empleado_id === adminEmpleadoId && t.fecha === adminFecha
-    );
-
-    const haySolapamiento = turnosMismoDia.some((t) => {
-      const tIni = aMinutos(t.hora_inicio);
-      const tFin = aMinutos(t.hora_fin);
-      return minIni < tFin && minFin > tIni;
-    });
-
-    if (haySolapamiento) {
-      alert(
-        "Error: Este trabajador ya tiene un turno asignado en esa fecha que se solapa con ese horario."
-      );
-      return;
+    // Determinar qué fechas aplicar según el modo seleccionado
+    let fechasAplica: string[] = [];
+    if (modoCreacionTurno === "dia") {
+      fechasAplica = [adminFecha];
+    } else if (modoCreacionTurno === "laborables") {
+      // Lunes a Viernes de la semana a la que pertenece la fecha seleccionada
+      const dBase = new Date(adminFecha + "T12:00:00");
+      const diaSem = dBase.getDay() === 0 ? 7 : dBase.getDay();
+      const lunes = new Date(dBase);
+      lunes.setDate(dBase.getDate() - diaSem + 1);
+      
+      fechasAplica = Array.from({ length: 5 }, (_, i) => {
+        const d = new Date(lunes);
+        d.setDate(lunes.getDate() + i);
+        return toFechaLocalISO(d);
+      });
+    } else if (modoCreacionTurno === "toda_semana") {
+      // Lunes a Domingo de la semana a la que pertenece la fecha seleccionada
+      const dBase = new Date(adminFecha + "T12:00:00");
+      const diaSem = dBase.getDay() === 0 ? 7 : dBase.getDay();
+      const lunes = new Date(dBase);
+      lunes.setDate(dBase.getDate() - diaSem + 1);
+      
+      fechasAplica = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(lunes);
+        d.setDate(lunes.getDate() + i);
+        return toFechaLocalISO(d);
+      });
     }
 
     setProcesando(true);
     try {
-      const { error } = await supabase.from("turnos_planificados").insert({
-        empleado_id: adminEmpleadoId,
-        fecha: adminFecha,
-        ubicacion: adminSede,
-        hora_inicio: adminInicio,
-        hora_fin: adminFin,
-        horas_totales: Number(horasCalculadas.toFixed(2)),
-      });
+      const nuevosTurnos: Omit<Turno, "id">[] = [];
 
-      if (error) alert("Error al guardar turno: " + error.message);
-      await cargarDatos();
+      for (const fFecha of fechasAplica) {
+        const turnosMismoDia = turnos.filter(
+          (t) => t.empleado_id === adminEmpleadoId && t.fecha === fFecha
+        );
+
+        const haySolapamiento = turnosMismoDia.some((t) => {
+          const tIni = aMinutos(t.hora_inicio);
+          const tFin = aMinutos(t.hora_fin);
+          return minIni < tFin && minFin > tIni;
+        });
+
+        if (!haySolapamiento) {
+          nuevosTurnos.push({
+            empleado_id: adminEmpleadoId,
+            fecha: fFecha,
+            ubicacion: adminSede,
+            hora_inicio: adminInicio,
+            hora_fin: adminFin,
+            horas_totales: Number(horasCalculadas.toFixed(2)),
+          });
+        }
+      }
+
+      if (nuevosTurnos.length === 0) {
+        alert("No se pudo crear ningún turno: ya existen turnos solapados en esas fechas para este empleado.");
+      } else {
+        const { error } = await supabase.from("turnos_planificados").insert(nuevosTurnos);
+        if (error) alert("Error al guardar turnos: " + error.message);
+        else await cargarDatos();
+      }
     } finally {
       setProcesando(false);
     }
@@ -392,6 +431,57 @@ export default function VictorMoralesApp() {
     try {
       await supabase.from("turnos_planificados").delete().eq("id", id);
       await cargarDatos();
+    } finally {
+      setProcesando(false);
+    }
+  }
+
+  async function generarTurnosFijosTallerSemana() {
+    if (procesando) return;
+    setProcesando(true);
+
+    try {
+      const fijosTaller = empleados.filter((e) => e.tipo === "fijo_taller");
+      if (fijosTaller.length === 0) {
+        alert("No hay empleados configurados como 'fijo_taller'.");
+        return;
+      }
+
+      const nuevosTurnos: Omit<Turno, "id">[] = [];
+
+      for (let i = 0; i < 5; i++) {
+        const fechaDia = diasSemanaSeleccionada[i];
+        if (!fechaDia) continue;
+
+        for (const emp of fijosTaller) {
+          const yaTieneTurno = turnos.some(
+            (t) => t.empleado_id === emp.id && t.fecha === fechaDia
+          );
+
+          if (!yaTieneTurno) {
+            nuevosTurnos.push({
+              empleado_id: emp.id,
+              fecha: fechaDia,
+              ubicacion: "taller",
+              hora_inicio: "07:00",
+              hora_fin: "15:00",
+              horas_totales: 8,
+            });
+          }
+        }
+      }
+
+      if (nuevosTurnos.length === 0) {
+        alert("Los trabajadores fijos de taller ya tienen turnos asignados en todos los días de esta semana.");
+      } else {
+        const { error } = await supabase.from("turnos_planificados").insert(nuevosTurnos);
+        if (error) {
+          alert("Error al generar turnos automáticos: " + error.message);
+        } else {
+          await cargarDatos();
+          alert(`¡Se han generado ${nuevosTurnos.length} turnos automáticos (L-V de 07:00 a 15:00) para los fijos de taller!`);
+        }
+      }
     } finally {
       setProcesando(false);
     }
@@ -866,16 +956,27 @@ export default function VictorMoralesApp() {
                   </div>
 
                   {usuarioActual.tipo === "admin" && (
-                    <button
-                      onClick={autocompletarSemanaTaller}
-                      disabled={procesando}
-                      className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      {procesando
-                        ? "Calculando huecos..."
-                        : "Autocompletar horas faltantes en Taller (L-S, máx 8h/día)"}
-                    </button>
+                    <div className="space-y-2 pt-1">
+                      <button
+                        onClick={generarTurnosFijosTallerSemana}
+                        disabled={procesando}
+                        className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition shadow-sm"
+                      >
+                        <Zap className="w-4 h-4 text-amber-300" />
+                        {procesando ? "Generando..." : "Rellenar Fijos de Taller (L-V, 07:00-15:00)"}
+                      </button>
+
+                      <button
+                        onClick={autocompletarSemanaTaller}
+                        disabled={procesando}
+                        className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-300" />
+                        {procesando
+                          ? "Calculando huecos..."
+                          : "Autocompletar déficit en Taller para rotativos"}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -1060,7 +1161,7 @@ export default function VictorMoralesApp() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-stone-500 mb-1">Fecha</label>
+                  <label className="block text-xs text-stone-500 mb-1">Fecha de referencia</label>
                   <input
                     type="date"
                     value={adminFecha}
@@ -1069,7 +1170,20 @@ export default function VictorMoralesApp() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-stone-500 mb-1">Aplicar a:</label>
+                  <select
+                    value={modoCreacionTurno}
+                    onChange={(e) => setModoCreacionTurno(e.target.value as any)}
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium"
+                  >
+                    <option value="dia">Solo este día exacto</option>
+                    <option value="laborables">Toda la semana (Lunes a Viernes)</option>
+                    <option value="toda_semana">Toda la semana (Lunes a Domingo)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
                   <div>
                     <label className="block text-xs text-stone-500 mb-1">Entrada</label>
                     <input
@@ -1096,7 +1210,7 @@ export default function VictorMoralesApp() {
                 disabled={procesando}
                 className="w-full py-3 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-800 disabled:opacity-50 transition"
               >
-                {procesando ? "Guardando..." : "Guardar Turno en Cuadrante"}
+                {procesando ? "Guardando..." : "Guardar Turno(s) en Cuadrante"}
               </button>
             </form>
 

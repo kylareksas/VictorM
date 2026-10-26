@@ -73,7 +73,6 @@ const COLORES_SEDE: Record<Ubicacion, string> = {
   san_jose: "bg-sky-100 text-sky-900 border-sky-300",
 };
 
-// Función auxiliar para formatear fechas en zona horaria local (evita el bug de UTC de toISOString)
 function toFechaLocalISO(d: Date): string {
   const anio = d.getFullYear();
   const mes = String(d.getMonth() + 1).padStart(2, "0");
@@ -102,7 +101,7 @@ export default function VictorMoralesApp() {
 
   const [tabActiva, setTabActiva] = useState<"fichar" | "horario" | "admin">("fichar");
   const [vistaHorario, setVistaHorario] = useState<"semanal" | "mensual">("semanal");
-  const [desplazamientoSemana, setDesplazamientoSemana] = useState(0); // 0 = esta semana, 1 = próxima, -1 = anterior
+  const [desplazamientoSemana, setDesplazamientoSemana] = useState(0);
 
   const [fichajes, setFichajes] = useState<Fichaje[]>([]);
   const [turnos, setTurnos] = useState<Turno[]>([]);
@@ -121,7 +120,7 @@ export default function VictorMoralesApp() {
   const [mesExportar, setMesExportar] = useState("");
   const [empleadoExportar, setEmpleadoExportar] = useState("todos");
 
-  // Estado para la fecha base del cliente y evitar errores de prerender en Next.js
+  // Estado seguro para evitar new Date() en el prerender estático de Next.js
   const [hoyCliente, setHoyCliente] = useState<string>("");
 
   useEffect(() => {
@@ -129,6 +128,7 @@ export default function VictorMoralesApp() {
     setAdminFecha(hoyLocal);
     setMesExportar(hoyLocal.slice(0, 7));
     setHoyCliente(hoyLocal);
+    cargarDatos();
   }, []);
 
   async function cargarDatos() {
@@ -139,7 +139,6 @@ export default function VictorMoralesApp() {
       if (primerTrabajador && !adminEmpleadoId) {
         setAdminEmpleadoId(primerTrabajador.id);
       }
-      // Restaurar sesión guardada en el móvil si existe
       const idGuardado = localStorage.getItem("vm_usuario_id");
       if (idGuardado && !usuarioActual) {
         const encontrado = empData.find((e) => e.id === idGuardado);
@@ -163,7 +162,7 @@ export default function VictorMoralesApp() {
 
   function manejarLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!empleadoSeleccionadoLogin) return;
+    if (!empleadoSeleccionadoLogin || !hoyCliente) return;
     if (empleadoSeleccionadoLogin.pin_acceso === pinInput) {
       setUsuarioActual(empleadoSeleccionadoLogin);
       localStorage.setItem("vm_usuario_id", empleadoSeleccionadoLogin.id);
@@ -171,9 +170,8 @@ export default function VictorMoralesApp() {
       setErrorLogin("");
       setTabActiva("fichar");
 
-      const hoy = toFechaLocalISO(new Date());
       const turnoHoy = turnos.find(
-        (t) => t.empleado_id === empleadoSeleccionadoLogin.id && t.fecha === hoy
+        (t) => t.empleado_id === empleadoSeleccionadoLogin.id && t.fecha === hoyCliente
       );
       if (turnoHoy) setSedeFichaje(turnoHoy.ubicacion);
     } else {
@@ -194,15 +192,13 @@ export default function VictorMoralesApp() {
   }, [fichajes, usuarioActual]);
 
   async function ficharEntrada() {
-    if (!usuarioActual || procesando || fichajeAbierto) return;
+    if (!usuarioActual || procesando || fichajeAbierto || !hoyCliente) return;
     setProcesando(true);
     try {
       const ahora = new Date();
-      const hoy = toFechaLocalISO(ahora);
-
       const { error } = await supabase.from("fichajes").insert({
         empleado_id: usuarioActual.id,
-        fecha: hoy,
+        fecha: hoyCliente,
         ubicacion: sedeFichaje,
         entrada: ahora.toISOString(),
       });
@@ -286,10 +282,10 @@ export default function VictorMoralesApp() {
     }
   }
 
-  // Cálculo de los 7 días de la semana seleccionada en hora local española
   const diasSemanaSeleccionada = useMemo(() => {
-    const hoy = new Date();
-    hoy.setHours(12, 0, 0, 0);
+    if (!hoyCliente) return Array.from({ length: 7 }, () => "");
+
+    const hoy = new Date(hoyCliente + "T12:00:00");
     const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay();
     const lunes = new Date(hoy);
     lunes.setDate(hoy.getDate() - diaSemana + 1 + desplazamientoSemana * 7);
@@ -299,11 +295,12 @@ export default function VictorMoralesApp() {
       d.setDate(lunes.getDate() + i);
       return toFechaLocalISO(d);
     });
-  }, [desplazamientoSemana]);
+  }, [hoyCliente, desplazamientoSemana]);
 
   const resumenCompensacionSemanal = useMemo(() => {
     const inicioSemana = diasSemanaSeleccionada[0];
     const finSemana = diasSemanaSeleccionada[6];
+    if (!inicioSemana || !finSemana) return [];
 
     return empleados
       .filter((e) => e.tipo !== "admin")
@@ -354,7 +351,6 @@ export default function VictorMoralesApp() {
       return;
     }
 
-    // Validar que no se solape con otro turno del mismo empleado en esa fecha
     const turnosMismoDia = turnos.filter(
       (t) => t.empleado_id === adminEmpleadoId && t.fecha === adminFecha
     );
@@ -401,7 +397,6 @@ export default function VictorMoralesApp() {
     }
   }
 
-  // --- FUNCIÓN CORREGIDA: DISTRIBUYE LAS HORAS DE TALLER DE LUNES A SÁBADO (MÁX 8H/DÍA) ---
   async function autocompletarSemanaTaller() {
     if (procesando) return;
     setProcesando(true);
@@ -413,9 +408,10 @@ export default function VictorMoralesApp() {
         let horasPendientes = item.faltanParaTaller;
         if (horasPendientes <= 0) continue;
 
-        // Recorremos de Lunes (índice 0) a Sábado (índice 5)
         for (let i = 0; i < 6 && horasPendientes > 0; i++) {
           const fechaDia = diasSemanaSeleccionada[i];
+          if (!fechaDia) continue;
+
           const turnosDia = turnos.filter(
             (t) => t.empleado_id === item.empleado.id && t.fecha === fechaDia
           );
@@ -427,10 +423,9 @@ export default function VictorMoralesApp() {
           const huecoDisponibleHoy = Math.max(0, 8 - horasYaAsignadasHoy);
           if (huecoDisponibleHoy <= 0) continue;
 
-          // Intentar meter bloque de mañana (08:00 a 14:00) o tarde (15:00 a 20:00) sin solapar
           const tramosCandidatos = [
-            { inicio: 8 * 60, maxDuracion: 6 }, // 08:00 - 14:00
-            { inicio: 15 * 60, maxDuracion: 5 }, // 15:00 - 20:00
+            { inicio: 8 * 60, maxDuracion: 6 },
+            { inicio: 15 * 60, maxDuracion: 5 },
           ];
 
           for (const tramo of tramosCandidatos) {
@@ -622,9 +617,8 @@ export default function VictorMoralesApp() {
   }
 
   const misFichajes = fichajes.filter((f) => f.empleado_id === usuarioActual.id);
-  const hoyISO = toFechaLocalISO(new Date());
   const misTurnosHoy = turnos.filter(
-    (t) => t.empleado_id === usuarioActual.id && t.fecha === hoyISO
+    (t) => t.empleado_id === usuarioActual.id && t.fecha === hoyCliente
   );
 
   return (
@@ -649,7 +643,7 @@ export default function VictorMoralesApp() {
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
               <p className="text-xs uppercase font-semibold text-stone-400 mb-2">
-                Tu cuadrante para hoy ({hoyISO})
+                Tu cuadrante para hoy ({hoyCliente})
               </p>
               {misTurnosHoy.length === 0 ? (
                 <p className="text-sm text-stone-500">
@@ -807,7 +801,6 @@ export default function VictorMoralesApp() {
 
             {vistaHorario === "semanal" ? (
               <>
-                {/* Selector de Semana (Anterior / Actual / Siguiente) */}
                 <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-2xl border border-stone-200 shadow-sm">
                   <button
                     onClick={() => setDesplazamientoSemana((d) => d - 1)}
@@ -888,6 +881,7 @@ export default function VictorMoralesApp() {
 
                 <div className="space-y-3">
                   {diasSemanaSeleccionada.map((fechaDia) => {
+                    if (!fechaDia) return null;
                     const turnosDia = turnos.filter((t) => t.fecha === fechaDia);
                     const nombreDia = new Date(fechaDia + "T12:00:00").toLocaleDateString("es-ES", {
                       weekday: "long",
@@ -1149,7 +1143,6 @@ export default function VictorMoralesApp() {
                 </div>
               </div>
 
-              {/* Tabla de auditoría de fichajes restaurada para el Jefe */}
               <div className="overflow-x-auto border-t border-stone-100 pt-3">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -1262,7 +1255,7 @@ export default function VictorMoralesApp() {
                 required
                 placeholder="Ej: Olvidé fichar al cerrar la tienda"
                 value={motivoEdicion}
-                onChange={(e) => setMotivoEdicion(e.target.value)}
+                onChange={(e) => setMotivoEdicon(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-stone-300 text-sm"
               />
             </div>

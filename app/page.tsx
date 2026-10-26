@@ -113,16 +113,19 @@ export default function VictorMoralesApp() {
   const [nuevaSalida, setNuevaSalida] = useState("");
   const [motivoEdicion, setMotivoEdicion] = useState("");
 
-  const [adminEmpleadoId, setAdminEmpleadoId] = useState("");
-  const [adminFecha, setAdminFecha] = useState(() => toFechaLocalISO(new Date()));
+const [adminEmpleadoId, setAdminEmpleadoId] = useState("");
+  const [adminFecha, setAdminFecha] = useState("");
   const [adminSede, setAdminSede] = useState<Ubicacion>("nijar");
   const [adminInicio, setAdminInicio] = useState("10:00");
   const [adminFin, setAdminFin] = useState("14:00");
-  const [mesExportar, setMesExportar] = useState(() => toFechaLocalISO(new Date()).slice(0, 7));
+  const [mesExportar, setMesExportar] = useState("");
   const [empleadoExportar, setEmpleadoExportar] = useState("todos");
 
+  // Asignar fechas iniciales en el cliente al cargar para evitar errores de prerenderizado
   useEffect(() => {
-    cargarDatos();
+    const hoyLocal = toFechaLocalISO(new Date());
+    setAdminFecha(hoyLocal);
+    setMesExportar(hoyLocal.slice(0, 7));
   }, []);
 
   async function cargarDatos() {

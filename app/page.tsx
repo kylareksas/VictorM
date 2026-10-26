@@ -622,11 +622,11 @@ export default function VictorMoralesApp() {
     return (
       <div className="min-h-screen bg-stone-100 flex flex-col justify-center items-center p-4 text-stone-800">
         <div className="max-w-md w-full bg-stone-900 rounded-2xl shadow-md overflow-hidden border border-stone-800">
-          <div className="bg-stone-950 p-5 flex justify-center border-b border-stone-800">
+          <div className="bg-stone-950 py-6 px-8 flex justify-center border-b border-stone-800">
             <img 
               src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
               alt="Cerámica Víctor Morales" 
-              className="h-9 object-contain"
+              className="w-full max-w-[280px] h-auto object-contain"
             />
           </div>
           <div className="p-6 bg-white">
@@ -722,7 +722,7 @@ export default function VictorMoralesApp() {
           <img 
             src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
             alt="Cerámica Víctor Morales" 
-            className="h-6 object-contain"
+            className="h-8 object-contain"
           />
           <span className="text-xs text-stone-400 border-l border-stone-700 pl-3 hidden sm:inline">
             Control de Turnos
@@ -745,11 +745,11 @@ export default function VictorMoralesApp() {
         {tabActiva === "fichar" && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                 <img 
                   src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                   alt="Cerámica Víctor Morales" 
-                  className="h-5 object-contain"
+                  className="w-full max-w-[220px] h-auto object-contain"
                 />
               </div>
               <div className="p-4 space-y-2">
@@ -781,11 +781,11 @@ export default function VictorMoralesApp() {
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden text-center">
-              <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                 <img 
                   src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                   alt="Cerámica Víctor Morales" 
-                  className="h-5 object-contain"
+                  className="w-full max-w-[220px] h-auto object-contain"
                 />
               </div>
               <div className="p-6 space-y-4">
@@ -845,11 +845,11 @@ export default function VictorMoralesApp() {
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                 <img 
                   src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                   alt="Cerámica Víctor Morales" 
-                  className="h-5 object-contain"
+                  className="w-full max-w-[220px] h-auto object-contain"
                 />
               </div>
               <div className="p-4 space-y-3">
@@ -960,11 +960,11 @@ export default function VictorMoralesApp() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                  <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+                  <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                     <img 
                       src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                       alt="Cerámica Víctor Morales" 
-                      className="h-5 object-contain"
+                      className="w-full max-w-[220px] h-auto object-contain"
                     />
                   </div>
                   <div className="p-4 space-y-3">
@@ -1111,11 +1111,11 @@ export default function VictorMoralesApp() {
               </>
             ) : (
               <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+                <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                   <img 
                     src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                     alt="Cerámica Víctor Morales" 
-                    className="h-5 object-contain"
+                    className="w-full max-w-[220px] h-auto object-contain"
                   />
                 </div>
                 <div className="p-4 space-y-4">
@@ -1183,11 +1183,11 @@ export default function VictorMoralesApp() {
               onSubmit={crearTurnoPlanificado}
               className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden"
             >
-              <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                 <img 
                   src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                   alt="Cerámica Víctor Morales" 
-                  className="h-5 object-contain"
+                  className="w-full max-w-[220px] h-auto object-contain"
                 />
               </div>
               <div className="p-5 space-y-4">
@@ -1282,11 +1282,11 @@ export default function VictorMoralesApp() {
             </form>
 
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-900 px-4 py-2.5 flex items-center justify-center">
+              <div className="bg-stone-900 py-4 px-6 flex items-center justify-center">
                 <img 
                   src="https://ceramicavictormorales.com/wp-content/uploads/2025/02/logo-horizontal_blanco-1.png" 
                   alt="Cerámica Víctor Morales" 
-                  className="h-5 object-contain"
+                  className="w-full max-w-[220px] h-auto object-contain"
                 />
               </div>
               <div className="p-5 space-y-4">

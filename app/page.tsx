@@ -1255,7 +1255,7 @@ export default function VictorMoralesApp() {
                 required
                 placeholder="Ej: Olvidé fichar al cerrar la tienda"
                 value={motivoEdicion}
-                onChange={(e) => setMotivoEdicon(e.target.value)}
+                onChange={(e) => setMotivoEdicion(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-stone-300 text-sm"
               />
             </div>
